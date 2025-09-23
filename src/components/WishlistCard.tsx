@@ -16,7 +16,7 @@ export const WishlistCard = ({ item, onTogglePurchased, onEdit, onDelete }: Wish
   const [imageError, setImageError] = useState(false);
 
   return (
-    <Card className={`group relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-105 ${
+    <Card className={`group relative overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-primary/20 hover:scale-105 animate-fade-in ${
       item.purchased ? 'opacity-60' : ''
     }`}>
       <CardContent className="p-0">

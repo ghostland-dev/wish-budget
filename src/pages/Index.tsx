@@ -3,9 +3,12 @@ import { WishlistCard } from "@/components/WishlistCard";
 import { BudgetSummary } from "@/components/BudgetSummary";
 import { AddItemDialog } from "@/components/AddItemDialog";
 import { FilterBar } from "@/components/FilterBar";
+import { SearchBar } from "@/components/SearchBar";
+import { SettingsDialog } from "@/components/SettingsDialog";
+import { StatsCards } from "@/components/StatsCards";
 import { WishlistItem } from "@/types/wishlist";
 import { Button } from "@/components/ui/button";
-import { Download, Settings, Heart } from "lucide-react";
+import { Download, Settings, Heart, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
@@ -23,31 +26,75 @@ const Index = () => {
     "Autres"
   ];
 
+  // Sample data for demonstration
+  const sampleItems: WishlistItem[] = [
+    {
+      id: "1",
+      name: "iPhone 15 Pro",
+      category: "Électronique",
+      price: 1199,
+      imageUrl: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=400&h=300&fit=crop",
+      link: "https://apple.com",
+      purchased: false,
+      createdAt: new Date()
+    },
+    {
+      id: "2", 
+      name: "Nike Air Jordan 1",
+      category: "Mode & Vêtements",
+      price: 170,
+      imageUrl: "https://images.unsplash.com/photo-1556906781-9a412961c28c?w=400&h=300&fit=crop",
+      purchased: true,
+      createdAt: new Date()
+    },
+    {
+      id: "3",
+      name: "MacBook Pro M3",
+      category: "Électronique", 
+      price: 2299,
+      imageUrl: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400&h=300&fit=crop",
+      purchased: false,
+      createdAt: new Date()
+    }
+  ];
+
   // State management
-  const [items, setItems] = useState<WishlistItem[]>([]);
+  const [items, setItems] = useState<WishlistItem[]>(sampleItems);
   const [budget, setBudget] = useState<number>(1000);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showPurchased, setShowPurchased] = useState<boolean>(false);
   const [editingItem, setEditingItem] = useState<WishlistItem | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [customCategories, setCustomCategories] = useState<string[]>([]);
 
-  // Get unique categories from items + defaults
+  // Get unique categories from items + defaults + custom
   const categories = useMemo(() => {
     const itemCategories = [...new Set(items.map(item => item.category))];
-    return [...new Set([...defaultCategories, ...itemCategories])];
-  }, [items]);
+    return [...new Set([...defaultCategories, ...customCategories, ...itemCategories])];
+  }, [items, customCategories]);
 
-  // Filter items based on filters
+  // Filter items based on filters and search
   const filteredItems = useMemo(() => {
     let filtered = items;
     
+    // Filter by search term
+    if (searchTerm) {
+      filtered = filtered.filter(item => 
+        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.category.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    // Filter by category
     if (selectedCategory) {
       filtered = filtered.filter(item => item.category === selectedCategory);
     }
     
+    // Filter by purchase status
     filtered = filtered.filter(item => showPurchased ? item.purchased : !item.purchased);
     
     return filtered;
-  }, [items, selectedCategory, showPurchased]);
+  }, [items, selectedCategory, showPurchased, searchTerm]);
 
   // Event handlers
   const handleAddItem = (itemData: Omit<WishlistItem, 'id' | 'createdAt'>) => {
@@ -130,14 +177,22 @@ const Index = () => {
     });
   };
 
+  const handleAddCategory = (category: string) => {
+    setCustomCategories(prev => [...prev, category]);
+  };
+
+  const handleRemoveCategory = (category: string) => {
+    setCustomCategories(prev => prev.filter(cat => cat !== category));
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-background/90">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
+        <div className="mb-8 animate-fade-in">
+          <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center">
+              <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center animate-pulse-glow">
                 <Heart className="h-6 w-6 text-primary-foreground" />
               </div>
               <div>
@@ -150,7 +205,12 @@ const Index = () => {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={handleExportCSV}>
+              <SettingsDialog
+                categories={categories}
+                onAddCategory={handleAddCategory}
+                onRemoveCategory={handleRemoveCategory}
+              />
+              <Button variant="outline" onClick={handleExportCSV} className="hover:bg-primary/10 transition-colors">
                 <Download className="h-4 w-4 mr-2" />
                 Exporter CSV
               </Button>
@@ -160,7 +220,18 @@ const Index = () => {
               />
             </div>
           </div>
+          
+          {/* Search Bar */}
+          <div className="mb-4">
+            <SearchBar
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+            />
+          </div>
         </div>
+
+        {/* Stats Cards */}
+        <StatsCards items={items} budget={budget} />
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Sidebar with budget */}

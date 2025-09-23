@@ -19,7 +19,7 @@ export const FilterBar = ({
   onShowPurchasedChange
 }: FilterBarProps) => {
   return (
-    <div className="flex flex-wrap items-center gap-4 p-4 bg-card rounded-lg border">
+    <div className="flex flex-wrap items-center gap-4 p-4 bg-card/60 backdrop-blur-sm rounded-lg border border-border/50 animate-fade-in">
       <div className="flex items-center gap-2">
         <span className="text-sm font-medium">Filtres:</span>
       </div>
